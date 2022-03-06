@@ -287,4 +287,4 @@ React 并没有采用将*标记与逻辑进行分离到不同文件*这种人为
 
 # React 哲学
 
-![点击查看图片来源](https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fqiniu.wind-zhou.com%2Fblog%2F210411%2F5HfDl4heIb.png%3Fimageslim&refer=http%3A%2F%2Fqiniu.wind-zhou.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1649177607&t=1d760e64f77c64cd0c149ab2157217a3)
+![](res/react-design.jpg)
