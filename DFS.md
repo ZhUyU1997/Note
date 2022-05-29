@@ -833,6 +833,557 @@ int movingCount(int m, int n, int k){
 }
 ```
 
+## [全排列](https://vjudge.net/problem/OpenJ_Bailian-4070)
+
+对于数组[1, 2, 3]，他们按照从小到大的全排列是
+
+1 2 3
+
+1 3 2
+
+2 1 3
+
+2 3 1
+
+3 1 2
+
+3 2 1
+
+现在给你一个正整数n，n小于8，输出数组[1, 2, …，n]的从小到大的全排列。
+
+##### Input
+
+输入有多行，每行一个整数。当输入0时结束输入。
+
+##### Output
+
+对于每组输入，输出该组的全排列。每一行是一种可能的排列，共n个整数，每个整数用一个空格隔开，每行末尾没有空格。
+
+
+
+### 题解
+
+需要搜索所有path， 所以需要回溯操作，注意题目的输出格式。
+
+和直接题目的不同在与需要记录走过的路径，这里直接定义一个path, 里面的存放走过的节点。
+
+另外一个技巧, 题目的数值是1-N, 我们可以定义大1的数组，将第一个位置空出来。
+
+```mermaid
+graph TD;
+    Root-->a1[1];
+    Root-->b1[2];
+    Root-->c1[3];
+    a1-->b21[2];
+    a1-->c21[3];
+    b1-->a22[1];
+    b1-->c22[3];
+    c1-->a23[1];
+    c1-->b23[2];
+```
+
+
+
+```c
+#include <stdio.h>
+
+#define MAX_LEN 9
+
+int path[MAX_LEN] = {0}; //用来记录走过的路径
+int visited[MAX_LEN] = {0};
+int N;
+
+void dfs(int step)
+{
+    if (step >= N)
+    {
+        for (int i = 1; i <= N; i++)
+        {
+            // 输入需要满足题目要求
+            if (i == 1)
+                printf("%d", path[i]);
+            else
+                printf(" %d", path[i]);
+        }
+        printf("\n");
+        return;
+    }
+
+    for (int i = 1; i <= N; i++)
+    {
+        if (visited[i] == 0)
+        {
+            path[step + 1] = i;
+            visited[i] = 1;
+            dfs(step + 1);
+            visited[i] = 0;
+        }
+    }
+}
+
+int main()
+{
+    while (1)
+    {
+        scanf("%d", &N);
+
+        // 为0就退出程序
+        if (N == 0)
+            break;
+
+        // 初始化visited数组
+        for (int i = 1; i <= N; i++)
+        {
+            visited[i] = 0;
+        }
+
+        dfs(0);
+    }
+
+    return 0;
+}
+```
+
+## [字母的全排列](https://vjudge.net/problem/OpenJ_Bailian-2748)
+
+描述
+
+给定一个由不同的小写字母组成的字符串，输出这个字符串的所有全排列。 我们假设对于小写字母有'a' < 'b' < ... < 'y' < 'z'，而且给定的字符串中的字母已经按照从小到大的顺序排列。
+
+输入
+
+输入只有一行，是一个由不同的小写字母组成的字符串，已知字符串的长度在1到6之间。
+
+输出
+
+输出这个字符串的所有排列方式，每行一个排列。要求字母序比较小的排列在前面。字母序如下定义：
+
+已知S = s1s2...sk , T = t1t2...tk，则S < T 等价于，存在p (1 <= p <= k)，使得
+s1 = t1, s2 = t2, ..., sp - 1 = tp - 1, sp < tp成立。
+
+样例输入
+
+```
+abc
+```
+
+样例输出
+
+```
+abc
+acb
+bac
+bca
+cab
+cba
+```
+
+
+
+### 题解
+
+就是将数字换成字母，稍微修改上一题答案。
+
+```mermaid
+graph TD;
+    Root-->a1[a];
+    Root-->b1[b];
+    Root-->c1[c];
+    a1-->b21[b];
+    a1-->c21[c];
+    b1-->a22[a];
+    b1-->c22[c];
+    c1-->a23[a];
+    c1-->b23[b];
+```
+
+
+
+```c
+#include <stdio.h>
+
+// 题目最大长度+1 ==7 因为还有末尾的\0
+#define MAX_LEN 7
+
+char path[MAX_LEN] = {0}; //节点状态是字符所以用char数组
+int visited[MAX_LEN] = {0};
+int N;
+
+char str[MAX_LEN]  ={0};
+
+void dfs(int step)
+{
+    if (step >= N)
+    {
+        path[N] = '\0'; //最后一个设置为空，不然打印可能有问题
+        printf("%s\n", path);
+        return;
+    }
+
+    for (int i = 0; i < N; i++)
+    {
+        if (visited[i] == 0)
+        {
+            path[step] = str[i];
+            visited[i] = 1;
+            dfs(step + 1);
+            visited[i] = 0;
+        }
+    }
+}
+
+int main()
+{
+    // %s 输入一个字符串，注意不要用%c, 坑太多, 字符串输入统一用%s
+    scanf("%s", str);
+    N = strlen(str); //或字符长度
+
+    for (int i = 0; i < N; i++)
+    {
+        visited[i] = 0;
+    }
+
+    dfs(0);
+
+    return 0;
+}
+```
+
+## [Order](https://vjudge.net/problem/POJ-1731)
+
+The stores manager has sorted all kinds of goods in an alphabetical order of their labels. All the kinds having labels starting with the same letter are stored in the same warehouse (i.e. in the same building) labelled with this letter. During the day the stores manager receives and books the orders of goods which are to be delivered from the store. Each order requires only one kind of goods. The stores manager processes the requests in the order of their booking.
+
+You know in advance all the orders which will have to be processed by the stores manager today, but you do not know their booking order. Compute all possible ways of the visits of warehouses for the stores manager to settle all the demands piece after piece during the day.
+
+##### Input
+
+Input contains a single line with all labels of the requested goods (in random order). Each kind of goods is represented by the starting letter of its label. Only small letters of the English alphabet are used. The number of orders doesn't exceed 200.
+
+##### Output
+
+Output will contain all possible orderings in which the stores manager may visit his warehouses. Every warehouse is represented by a single small letter of the English alphabet -- the starting letter of the label of the goods. Each ordering of warehouses is written in the output file only once on a separate line and all the lines containing orderings have to be sorted in an alphabetical order (see the example). No output will exceed 2 megabytes.
+
+
+
+##### Sample
+
+| Input   | Output                                                       |
+| ------- | ------------------------------------------------------------ |
+| `bbjd ` | `bbdj bbjd bdbj bdjb bjbd bjdb dbbj dbjb djbb jbbd jbdb jdbb` |
+
+### 题解
+
+这题目的输入并不是个字典序排列的字符串，并且有多个相同字母。考虑一个26大小的int数组, 如果值为0表示没有这个字母，如果为1，表示这个字母可以使用一次， 大于0表示可以使用多次。我们直接复用了上一道的visited数组，改成remain, 表示可用的字母数量。
+
+另外需要掌握字符和数字的转化
+
+```
+char c;
+c-'a'; // 'a' - 'z' 转化为 0 -26
+int number;
+number+'a'; // 0 -26 转化为 'a' - 'z' 
+```
+
+完整代码
+
+```c
+#include <stdio.h>
+
+// 题目最大长度+1 ==201 因为还有末尾的\0
+#define MAX_LEN 201
+
+char path[MAX_LEN] = {0};
+int remain[26] = {0};
+int N;
+
+char str[MAX_LEN]  ={0};
+
+void dfs(int step)
+{
+    if (step >= N)
+    {
+        // 这个不能用%c, 直接%s 打印整个字符串，因为%c比较慢，无法通过
+        printf("%s\n", path);
+        return;
+    }
+
+    for (int i = 0; i < 26; i++)
+    {
+        if (remain[i] > 0)
+        {
+            path[step] = i + 'a'; // 数字转字符
+            remain[i]--;
+            dfs(step + 1);
+            remain[i]++;
+        }
+    }
+}
+
+int main()
+{
+    scanf("%s", str);
+    N = strlen(str);
+
+    // 初始化remain数组
+    for (int i = 0; i < 26; i++)
+    {
+        remain[i] = 0;
+    }
+
+    // 统计每个字母的个数
+    for (int i = 0; i < N; i++)
+    {
+        // str[i] - 'a' 字符转数字
+        remain[str[i] - 'a']++; 
+    }
+
+    dfs(0);
+
+    return 0;
+}
+```
+
+## [Anagram](https://vjudge.net/problem/POJ-1256) （排列）
+
+You are to write a program that has to generate all possible words from a given set of letters.
+Example: Given the word "abc", your program should - by exploring all different combination of the three letters - output the words "abc", "acb", "bac", "bca", "cab" and "cba".
+In the word taken from the input file, some letters may appear more than once. For a given word, your program should not produce the same word more than once, and the words should be output in alphabetically ascending order.
+
+##### Input
+
+The input consists of several words. The first line contains a number giving the number of words to follow. Each following line contains one word. A word consists of uppercase or lowercase letters from A to Z. Uppercase and lowercase letters are to be considered different. The length of each word is less than 13.
+
+##### Output
+
+For each word in the input, the output should contain all different words that can be generated with the letters of the given word. The words generated from the same input word should be output in alphabetically ascending order. An upper case letter goes before the corresponding lower case letter.
+
+##### Sample
+
+| Inputcopy         | Output                                                       |
+| ----------------- | ------------------------------------------------------------ |
+| `3 aAb abc acba ` | `Aab Aba aAb abA bAa baA abc acb bac bca cab cba aabc aacb abac abca acab acba baac baca bcaa caab caba cbaa` |
+
+### 题解
+
+和上面类似，但有几点区别
+
+1. 小写+大写
+2. 注意字母顺序不是ascii 顺序
+
+这里没有使用上一题的思路，因为题目的输入较短，而字母有26*2个， 没必要搜索不存在的字母。
+
+我们对原始输入排序，获得可用的字母。这里针对这个题目使用了一个技巧用来比较。
+
+我们将a-z 映射为2，4，6，8, A-Z映射为1，3，5，7，代码如下
+
+```c
+int cmp(char c1, char c2)
+{
+    int order1 = (c1 >= 'a' && c1 <= 'z') ? ((c1 - 'a') * 2 + 1) : ((c1 - 'A') * 2);
+    int order2 = (c2 >= 'a' && c2 <= 'z') ? ((c2 - 'a') * 2 + 1) : ((c2 - 'A') * 2);
+
+    return order1 - order2;
+}
+```
+
+排序直接使用冒泡：
+
+```c
+void sort(char *s, int length)
+{
+    for (int i = 0; i < length - 1; i++)
+    {
+        for (int j = 0; j < length - 1 - i; j++)
+        {
+
+            if (cmp(s[j], s[j + 1]) > 0)
+            {
+                char a = s[j + 1];
+                s[j + 1] = s[j];
+                s[j] = a;
+            }
+        }
+    }
+}
+```
+
+这样我们获得一个排序后字符串，DFS基于这个字符串搜索。这题我们没有使用remain数组，为了保证不重复遍历，需要在dfs后，跳过相同的字母。
+
+```c
+            for (int j = i + 1; j < N; j++)
+            {
+                if (str[i] == str[j])
+                    i++;
+            }
+```
+
+#### 完整代码
+
+```c
+#include <stdio.h>
+
+// 题目最大长度+1 ==14 因为还有末尾的\0
+#define MAX_LEN 14
+
+char path[MAX_LEN] = {0};
+int visited[MAX_LEN] = {0};
+
+int N;
+
+char str[MAX_LEN] = {0};
+
+int cmp(char c1, char c2)
+{
+    int order1 = (c1 >= 'a' && c1 <= 'z') ? ((c1 - 'a') * 2 + 1) : ((c1 - 'A') * 2);
+    int order2 = (c2 >= 'a' && c2 <= 'z') ? ((c2 - 'a') * 2 + 1) : ((c2 - 'A') * 2);
+
+    return order1 - order2;
+}
+
+void sort(char *s, int length)
+{
+    for (int i = 0; i < length - 1; i++)
+    {
+        for (int j = 0; j < length - 1 - i; j++)
+        {
+
+            if (cmp(s[j], s[j + 1]) > 0)
+            {
+                char a = s[j + 1];
+                s[j + 1] = s[j];
+                s[j] = a;
+            }
+        }
+    }
+}
+
+void dfs(int step)
+{
+    if (step >= N)
+    {
+        path[N] = '\0'; //最后一个设置为空，不然打印可能有问题
+        printf("%s\n", path);
+        return;
+    }
+
+    for (int i = 0; i < N; i++)
+    {
+        if (visited[i] == 0)
+        {
+            path[step] = str[i];
+            visited[i] = 1;
+            dfs(step + 1);
+            visited[i] = 0;
+
+            for (int j = i + 1; j < N; j++)
+            {
+                if (str[i] == str[j])
+                    i++;
+            }
+        }
+    }
+}
+
+int main()
+{
+    int T;
+    scanf("%d", &T);
+
+    for (int n = 0; n < T; n++)
+    {
+        scanf("%s", str);
+        N = strlen(str);
+
+        // 初始化visited数组
+        for (int i = 0; i < N; i++)
+        {
+            visited[i] = 0;
+        }
+
+        // 统计每个字母的个数
+        sort(str, N);
+        dfs(0);
+    }
+
+    return 0;
+}
+```
+
+
+
+练手题目： [Backward Digit **Sums**](http://poj.org/problem?id=3187)
+
+
+
+## [Lotto](https://vjudge.net/problem/POJ-2245) (组合)
+
+In the German Lotto you have to select 6 numbers from the set {1,2,...,49}. A popular strategy to play Lotto - although it doesn't increase your chance of winning - is to select a subset S containing k (k > 6) of these 49 numbers, and then play several games with choosing numbers only from S. For example, for k=8 and S = {1,2,3,5,8,13,21,34} there are 28 possible games: [1,2,3,5,8,13], [1,2,3,5,8,21], [1,2,3,5,8,34], [1,2,3,5,13,21], ... [3,5,8,13,21,34].
+
+Your job is to write a program that reads in the number k and the set S and then prints all possible games choosing numbers only from S.
+
+Input
+
+The input will contain one or more test cases. Each test case consists of one line containing several integers separated from each other by spaces. The first integer on the line will be the number k (6 < k < 13). Then k integers, specifying the set S, will follow in ascending order. Input will be terminated by a value of zero (0) for k.
+
+Output
+
+For each test case, print all possible games, each game on one line. The numbers of each game have to be sorted in ascending order and separated from each other by exactly one space. The games themselves have to be sorted lexicographically, that means sorted by the lowest number first, then by the second lowest and so on, as demonstrated in the sample output below. The test cases have to be separated from each other by exactly one blank line. Do not put a blank line after the last test case.
+
+### 题解
+
+组合题目，选6个，按字典序排列。建议自己尝试编写一下。
+
+```c
+#include <stdio.h>
+
+#define MAX_LEN 13
+
+int path[6] = {0};
+int N;
+int arr[MAX_LEN] = {0};
+
+void dfs(int deep, int start)
+{
+    // 选满6个数字
+    if (deep >= 6)
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            printf("%d ", path[i]);
+        }
+        printf("\n");
+        return;
+    }
+
+    // 从start-N中选择下一个数字
+    for (int i = start; i < N; i++)
+    {
+        path[deep] = arr[i];
+        dfs(deep + 1, i + 1);
+    }
+}
+
+int main()
+{
+    while (1)
+    {
+        scanf("%d", &N);
+
+        if (N == 0)
+            break;
+
+        for (int i = 0; i < N; i++)
+        {
+            scanf("%d", &arr[i]);
+        }
+        dfs(0, 0);
+        printf("\n"); //满足题目格式要求
+    }
+
+    return 0;
+}
+```
+
 ## 总结
 
 颜色填充: 指定了起点的，只要搜索这个联通区域，并且不关心搜索顺序，只要找到覆盖所有点即可
@@ -846,3 +1397,5 @@ int movingCount(int m, int n, int k){
 单词搜索：没有指定起点，关心搜索顺序，存在路径失败，一旦失败需要回溯
 
 机器人的运动范围：重点是十进制数的分解
+
+排列组合难度不大，但是需要很多技巧，以及掌握排序算法。特别是[Anagram](https://vjudge.net/problem/POJ-1256)  相对复杂点。另外有重复元素，需要避免重复搜索。
