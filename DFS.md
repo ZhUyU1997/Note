@@ -1384,6 +1384,60 @@ int main()
 }
 ```
 
+扩展：选任意个数字，如果编写？
+
+```c
+#include <stdio.h>
+
+// 题目最大长度+1 ==14 因为还有末尾的\0
+#define MAX_LEN 14
+
+int path[6] = {0};
+int N;
+int arr[MAX_LEN] = {0};
+
+void dfs(int deep, int step)
+{
+    // printf("#%d %d %d\n", deep, step, arr[deep]);
+    if (deep >= N)
+    {
+        for (int i = 0; i < step; i++)
+        {
+            printf("%d ", path[i]);
+        }
+        printf("\n");
+        return;
+    }
+
+    // printf("set %d %d\n", step, arr[deep] );
+    path[step] = arr[deep];
+    dfs(deep + 1, step + 1); //选择当前数字
+    dfs(deep + 1, step);//不选择当前数字
+}
+
+int main()
+{
+    while (1)
+    {
+        scanf("%d", &N);
+
+        if (N == 0)
+            break;
+
+        for (int i = 0; i < N; i++)
+        {
+            scanf("%d", &arr[i]);
+        }
+        dfs(0, 0);
+        printf("\n");
+    }
+
+    return 0;
+}
+```
+
+
+
 ## 总结
 
 颜色填充: 指定了起点的，只要搜索这个联通区域，并且不关心搜索顺序，只要找到覆盖所有点即可
