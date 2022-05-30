@@ -1,3 +1,7 @@
+[TOC]
+
+
+
 # DFS
 
 
@@ -1430,6 +1434,501 @@ int main()
         }
         dfs(0, 0);
         printf("\n");
+    }
+
+    return 0;
+}
+```
+
+## *概率题
+
+![](.\res\map.png)
+
+
+
+### 题解
+
+固定节点的有向图问题，直接给出了各边概率，可以方便的构造邻接表。
+
+这题没有使用visited数组，想想为什么。visited数组通常是避免重复访问节点或者防止无限递归，这题可以多次访问相同节点，并且指定了最大时间，肯定可以退出递归。**另外也可以尝试BFS。**
+
+```c
+#include <stdio.h>
+
+// 边的编号从一开始，注意需要加1
+#define MAX_SIZE 10
+
+int N, side, maxtime;
+
+double p[MAX_SIZE];
+double map[MAX_SIZE][MAX_SIZE] = {0};
+
+void dfs(int start, double value, int time)
+{
+    // 达到最大时间
+    if (time == maxtime)
+    {
+        // 更新start节点的概率
+        p[start] += value;
+        return;
+    }
+
+    for (int i = 1; i <= N; i++)
+    {
+        // 如果start到i联通
+        if (map[start][i] != 0)
+        {
+            // 计算跳转到i的概率，并增加时间
+            dfs(i, value * map[start][i], time + 10);
+        }
+    }
+}
+
+int main()
+{
+    freopen("input.txt", "r", stdin);
+
+    scanf("%d%d%d", &N, &side, &maxtime);
+
+    // 初始化全局变量
+    for (int i = 1; i <= N; i++)
+    {
+        p[i] = 0;
+        for (int j = 1; j <= N; j++)
+        {
+            map[i][j] = 0;
+        }
+    }
+
+
+    // 构造邻接表
+    for (int i = 0; i < side; i++)
+    {
+        int start, end;
+        double value;
+        scanf("%d%d%lf", &start, &end, &value);
+        map[start][end] = value;
+    }
+
+
+
+    // 起点在1， 概率为1, 时间为0
+    dfs(1, 1, 0);
+
+    double maxvalue = 0;
+    int maxnode = -1;;
+
+    // 计算最大概率以及最大概率的结点
+    for (int i = 1; i <= N; i++)
+    {
+        maxvalue = maxvalue < p[i] ? p[i] : maxvalue;
+        if (p[i] == maxvalue)
+        {
+            maxnode = 1;
+        }
+    }
+
+    printf("%d %f\n", maxnode, maxvalue);
+
+    return 0;
+}
+
+/*
+input
+6 10 40
+1 2 0.3
+1 3 0.7
+3 3 0.2
+2 4 1.0
+3 4 0.8
+4 4 0.1
+4 5 0.9
+5 6 1.0
+6 6 0.5
+6 3 0.5
+
+output
+#1 6 0.774000
+*/
+```
+
+
+
+## *Wormhole
+
+### 题解
+
+这题并不复杂，转化为一张图，并且图的边有权重。但是题目输入并不是直接可用与构造邻接表。如果邻接表不方便直接构造，数据范围很小，我们可以考虑直接遍历输入的边信息，从中找到所有可访问节点。
+
+如果构造邻接表很方便，建议优先邻接表。结合以往的经验，考试题目节点一般不会很多，二维数组即可。
+
+```c
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <stdio.h>
+#define MAX_N 5
+
+int N = 0;
+
+// 节点信息
+struct Node {
+	int x;
+	int y;
+	int visited;
+};
+
+// 边信息，起点，终点，时间
+struct Edge {
+	struct Node start;
+	struct Node end;
+	int time;
+} edges[MAX_N];
+
+int edges_len;
+
+int startx, starty, endx, endy;
+int min_distance = 0;
+
+// 曼哈顿距离
+int calc_distance(int x1, int y1, int x2, int y2)
+{
+	return (x1 > x2 ? x1 - x2 : x2 - x1) + (y1 > y2 ? y1 - y2 : y2 - y1);
+}
+
+void dfs(int x, int y, int d)
+{
+	//printf("%d %d\n", x, y, d);
+    // 剪枝优化
+    if(d >= min_distance)
+    {
+        return;
+	}
+    
+    // 终点退出并更新min_distance
+	if (x == endx && y == endy)
+	{
+		//printf("distance %d\n", d);
+		min_distance = d < min_distance ? d : min_distance;
+		return;
+	}
+  
+    // 遍历所有边
+	for (int i = 0; i < edges_len; i++)
+	{
+        // 取第i个边
+		struct Edge *edge = &edges[i];
+
+        // 当前位置不等于这条边的起点，并且没有访问过，就跳转到这条边的起点
+		if (!(edge->start.x == x && edge->start.y == y) && !edge->start.visited)
+		{
+            // 标记为访问过
+			edge->start.visited = 1;
+
+            // 如果当前位置刚好等于终点，选择穿越虫洞
+			if (edge->end.x == x && edge->end.y == y)
+			{
+                // 问：如果穿越虫洞的时间大于直接飞过去的，还能不能求出结果
+                // 答：能，因为肯定有路径直接飞过去而不经过当前位置， 并且更短
+                // 如果遇到这种不确定的，建议还是在【穿越虫洞的时间】和【直接飞过去的时间】中取最小值
+				dfs(edge->start.x, edge->start.y, d + edge->time);
+			}
+			else
+			{
+                // 否则计算哈密顿距离，飞船飞过去
+				dfs(edge->start.x, edge->start.y, d + calc_distance(x, y, edge->start.x, edge->start.y));
+			}
+            // 回溯状态
+			edge->start.visited = 0;
+		}
+		
+        // 当前位置不等于这条边的终点，并且没有访问过，就跳转到这条边的终点
+		if (!(edge->end.x == x && edge->end.y == y) && !edge->end.visited)
+		{
+            // 标记为访问过
+			edge->end.visited = 1;
+
+            // 如果当前位置刚好等于起点，选择穿越虫洞
+			if (edge->start.x == x && edge->start.y == y)
+			{
+				dfs(edge->end.x, edge->end.y, d + edge->time);
+			}
+			else
+			{
+                // 否则计算哈密顿距离，飞船飞过去
+				dfs(edge->end.x, edge->end.y, d + calc_distance(x, y, edge->end.x, edge->end.y));
+			}
+             // 回溯状态
+			edge->end.visited = 0;
+		}
+	}
+}
+
+
+int main()
+{
+	freopen("input.txt", "r", stdin);
+	int T;
+	scanf("%d", &T);
+
+	for (int i = 0; i < T; i++)
+	{
+		edges_len = 0;
+		scanf("%d", &N);
+
+		scanf("%d%d%d%d", &startx, &starty, &endx, &endy);
+
+        // 最短距离不可能大于直接从起点飞到终点
+		min_distance = calc_distance(startx, starty, endx, endy);
+
+        // 将起点到终点作为一条边加入 edge数组
+		struct Edge *e = &edges[edges_len++];
+        // 注意结构体的变量都要初始化不要遗漏
+		e->start.x = startx;
+		e->start.y = starty;
+		e->start.visited = 0;
+
+		e->end.x = endx;
+		e->end.y = endy;
+		e->end.visited = 0;
+
+		e->time = min_distance;
+
+
+        // 读入N条边
+		for (int j = 0; j < N; j++)
+		{
+			struct Edge *e = &edges[edges_len++];
+			scanf("%d%d%d%d%d", &e->start.x, &e->start.y, &e->end.x, &e->end.y, &e->time);
+			e->start.visited = 0;
+			e->end.visited = 0;
+		}
+
+		dfs(startx, starty, 0);
+
+		printf("#%d %d\n", i + 1, min_distance);
+
+	}
+	return 0;
+}
+
+
+/*
+input:
+5
+0
+0 0 60 60
+1
+0 0 2 0
+1 0 1 2 0
+1
+0 0 60 60
+40 40 20 20 10
+2
+100 50 10 5
+80 40 10 6 10
+80 10 70 40 5
+3
+500 500 1000 1000
+501 501 999 999 1000
+1 1 499 499 100
+1000 999 0 0 200
+
+output:
+#1 120
+#2 2
+#3 90
+#4 41
+#5 305
+*/
+```
+
+
+
+## *旅行商问题
+
+总时间限制: 1000ms 内存限制: 65536kB
+
+##### 描述
+
+某国家有n（1<=n<=10）座城市，给定任意两座城市间距离（不超过1000的非负整数）。一个旅行商人希望访问每座城市恰好一次（出发地任选，且最终无需返回出发地）。求最短的路径长度。
+
+##### 输入
+
+第一行输入一个整数n
+接下来n行，每行n个数，用空格隔开，以邻接矩阵形式给出城市间距离。该邻接矩阵是对称的，且对角线上全为0
+
+##### 输出
+
+一行，最短路径的长度
+
+##### 样例输入
+
+
+
+```
+6
+0 16 1 10 12 15
+16 0 10 2 10 8
+1 10 0 10 5 10
+10 2 10 0 9 3
+12 10 5 9 0 8
+15 8 10 3 8 0
+```
+
+##### 样例输出
+
+
+
+```
+19
+```
+
+### 题解
+
+不重复遍历，用排列组合解决，参考之前的全排列
+
+```c
+#include <stdio.h>
+
+#define MAX_N 11
+int cities[MAX_N][MAX_N] = {};
+int visited[MAX_N] = {};
+
+int N;
+int min;
+
+// 状态， city当前所在城市，deep: 递归深度，用来判断是否走完所有城市， sum：路径长度
+void dfs(int city, int deep, int sum)
+{
+    if (sum >= min)
+        return;
+
+    if (deep >= N - 1)
+    {
+        min = sum < min ? sum : min;
+        return;
+    }
+
+    for (int i = 1; i <= N; i++)
+    {
+        if (visited[i] == 0)
+        {
+            visited[i] = 1;
+            dfs(i, deep + 1, sum + cities[city][i]);
+            visited[i] = 0;
+        }
+    }
+}
+
+int main()
+{
+    scanf("%d", &N);
+    min = 1000 * 100;
+    for (int i = 1; i <= N; i++)
+    {
+        for (int j = 1; j <= N; j++)
+        {
+            scanf("%d", &cities[i][j]);
+        }
+        visited[i] = 0;
+    }
+
+    // 选择不同的起点，因为需要计算当前city和下一个city的距离, 
+    // 当前city必须合法，不能像之前的题目一样可以从root虚拟节点出发
+    for (int i = 1; i <= N; i++)
+    {
+        visited[i] = 1;
+        dfs(i, 0, 0);
+        visited[i] = 0;
+    }
+
+    printf("%d\n", min);
+
+    return 0;
+}
+```
+
+## *类似真题
+
+办公室->10个客户->家， 有这样几个节点(x,y)表示， 要求访问所有点，但起点是办公室，终点是家。 点和点距离是曼哈顿距离。
+
+其实就是虫洞和旅行商问题的结合体。输入的是坐标，不方便构造邻接表，所以和虫洞一样，遍历节点即可。
+
+下面是代码，因为没有原题数据，主要体会一下解题思路
+
+```c
+#include <stdio.h>
+
+#define MAX_N 11
+int visited[MAX_N] = {0};
+
+int N;
+int min;
+int x[MAX_N];
+int y[MAX_N];
+
+int startx, starty, endx, endy;
+int min_distance = 0;
+
+// 曼哈顿距离
+int calc_distance(int x1, int y1, int x2, int y2)
+{
+    return (x1 > x2 ? x1 - x2 : x2 - x1) + (y1 > y2 ? y1 - y2 : y2 - y1);
+}
+
+// sx, sy 当前坐标
+// deep: 递归深度，用来判断是否走完所有城市
+// sum：路径长度
+void dfs(int sx, int sy, int deep, int sum)
+{
+    printf("%d %d %d\n", startx, starty, deep, sum);
+
+    if (sum >= min)
+        return;
+
+    // 具体等不等于N，可以实际调一下,看能不能走完所有客户
+    if (deep >= N)
+    {
+        // 这是固定路径
+        sum += calc_distance(sx, sy, endx, endy); //回家
+        min = sum < min ? sum : min;
+        return;
+    }
+
+    for (int i = 0; i <= N; i++)
+    {
+        if (visited[i] == 0)
+        {
+            visited[i] = 1;
+            dfs(x[i], y[i], deep + 1, sum + calc_distance(sx, sy, x[i], y[i]));
+            visited[i] = 0;
+        }
+    }
+}
+
+int main()
+{
+    while (1)
+    {
+        scanf("%d", &N);
+
+        if (N == 0)
+            break;
+
+        scanf("%d%d%d%d", &startx, &starty, &endx, &endy);
+
+        // 没有具体的数据随便写的
+        min = 10000000;
+        for (int i = 0; i < N; i++)
+        {
+            scanf("%d%d", &x[i], &y[i]);
+            visited[i] = 0;
+        }
+
+        // 从办公室出发
+        dfs(startx, starty, 0, 0);
+
+        printf("%d\n", min);
     }
 
     return 0;
