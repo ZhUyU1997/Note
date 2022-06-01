@@ -1554,7 +1554,7 @@ output
 
 
 
-## *Wormhole
+## *
 
 ### 题解
 
@@ -1937,6 +1937,140 @@ int main()
 
 
 
+### 攀岩
+
+```c
+#include <stdio.h>
+#define MAX_N 50
+
+int N, M;
+int map[MAX_N][MAX_N];
+int vis[MAX_N][MAX_N];
+
+int d[] = {1, -1};
+
+int ans = 0;
+void dfs(int row, int col, int k)
+{
+    // 非常重要的剪枝优化，50x50还是比较深的，不加优化肯定超时。
+    // 注意需要等于，不然还会超时。
+    // 这种常规的优化一定要掌握。
+    if (k >= ans)
+        return;
+
+    // printf("%d %d %d\n", row, col, k);
+    if (map[row][col] == 3)
+    {
+        ans = k < ans ? k : ans;
+        return;
+    }
+
+    // 遍历水平方向
+    for (int i = 0; i < 2; i++)
+    {
+        int next_row = row;
+        int next_col = col + d[i];
+        // printf("# %d %d\n", next_row, next_col);
+        if (next_col >= 0 && next_col < M && !vis[next_row][next_col] && map[next_row][next_col] != 0)
+        {
+            vis[next_row][next_col] = 1;
+            dfs(next_row, next_col, k);
+            vis[next_row][next_col] = 0;
+        }
+    }
+
+    // 遍历垂直方向
+    for (int i = 0; i < 2; i++)
+    {
+        // 遍历垂直方向0-N-1长度
+        for (int j = 0; j < N; j++)
+        {
+            int next_row = row + d[i] * j;
+            int next_col = col;
+            // printf("* %d %d %d %d\n", next_row, next_col, row,col);
+
+            // 超出边界直接退出循环
+            if (next_row < 0 && next_row >= N)
+                break;
+
+            if (next_row >= 0 && next_row < N && !vis[next_row][next_col] && map[next_row][next_col] != 0)
+            {
+                vis[next_row][next_col] = 1;
+                // j > k ? j : k 更新攀岩难度
+                dfs(next_row, next_col, j > k ? j : k);
+                vis[next_row][next_col] = 0;
+                
+                // 直接退出循环
+                break;
+            }
+        }
+    }
+}
+
+int main()
+{
+    int t, T;
+    scanf("%d", &T);
+    t = 0;
+
+    for (int t = 0; t < T; t++)
+    {
+        scanf("%d%d", &N, &M);
+        for (int i = 0; i < N; i++)
+        {
+            for (int j = 0; j < M; j++)
+            {
+                scanf("%d", &map[i][j]);
+                vis[i][j] = 0;
+            }
+        }
+
+        ans = N;
+
+        vis[N - 1][0] = 1;
+        dfs(N - 1, 0, 0);
+        vis[N - 1][0] = 0;
+
+        printf("#%d %d\n", t + 1, ans);
+    }
+    return 0;
+}
+
+/*
+input:
+3
+5 8
+1 1 1 1 0 0 0 0
+0 0 0 3 0 1 1 1
+1 1 1 0 0 1 0 0
+0 0 0 0 0 0 1 0
+2 1 1 1 1 1 1 1
+5 6
+0 1 1 1 0 0
+3 1 0 1 1 0
+0 0 0 0 1 1
+0 0 0 0 0 1
+2 1 1 1 1 1
+9 13
+0 1 1 1 1 1 1 1 1 1 1 1 1
+1 1 0 0 0 0 0 0 0 0 0 1 1
+0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0
+1 1 0 0 0 0 0 0 0 0 0 1 3
+0 0 0 0 0 0 0 0 0 0 0 0 0
+1 1 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0
+2 1 1 1 1 1 1 1 1 1 1 1 1
+
+output:
+#1 2
+#2 1
+#3 3
+*/
+```
+
+
+
 ## 总结
 
 颜色填充: 指定了起点的，只要搜索这个联通区域，并且不关心搜索顺序，只要找到覆盖所有点即可
@@ -1952,3 +2086,252 @@ int main()
 机器人的运动范围：重点是十进制数的分解
 
 排列组合难度不大，但是需要很多技巧，以及掌握排序算法。特别是[Anagram](https://vjudge.net/problem/POJ-1256)  相对复杂点。另外有重复元素，需要避免重复搜索。
+
+
+
+
+
+## 考试要点
+
+#### 阅读题目
+
+注意数据范围和开始下标。
+
+如果从1开始，考虑数组size是否加1。
+
+如果是字符串，size需要加上末尾\0
+
+##### scanf
+
+格式符和数据类型
+
+```
+%d --> int
+%s --> char []
+%f --> float
+%lf --> double
+```
+
+注意避免使用%c输入字符，如果数据一行字符，使用%s读入字符数值
+
+```c
+char map[100][100];
+
+for(int i = 0,..)
+{
+	scanf("%s", &map[i]);
+}
+```
+
+
+
+输入是浮点数，注意double 用%lf ， float用%f
+
+```c
+double d;
+float f;
+scanf("%ldf %f", d, f);
+```
+
+
+
+##### printf
+
+格式符和数据类型
+
+```
+%d --> int
+%s --> char []
+%f --> float
+%f --> double
+```
+
+数据输入代码完成， 第一时间用过VS调试或者printf校验数据是否正确。
+
+
+
+#### 分析解题思路
+
+| 描述           | 思路                                                         | 题目                                         |
+| -------------- | ------------------------------------------------------------ | -------------------------------------------- |
+| 单个连通图搜索 | visited数组避免重复搜索，无回溯, DFS/BFS                     | 颜色填充, pipe                               |
+| 多个连通图搜索 | 遍历位访问每个结点发现所有连通图， visited数组避免重复搜索, DFS/BFS | 省份数量, 岛屿数量                           |
+| 排列           | 只考虑DFS，选择一个，然后在剩下的继续选， visited数组避免重复搜索，回溯搜索所有路径, | 全排列，字母的全排列，旅行商问题             |
+| 组合           | 按顺序决定选或不选                                           | [Lotto](https://vjudge.net/problem/POJ-2245) |
+| 路径遍历       | 搜索多个路径或全部，通常需要visited数组避免重复搜索          | 单词搜索，概率题，攀岩                       |
+| 无权图最短路径 | 只考虑BFS，这种题目数据范围一般都比较大                      | 迷宫，奶牛                                   |
+| 有权图最短路径 | 只考虑DFS。权重可能是时间，距离。就ADV考试而言，数据范围不会很大，不然就会超纲。注意剪枝优化 | Wormhole， EVE                               |
+
+##### 什么情况下用DFS
+
+搜索多个路径或者全部路径，并且需要回溯一个比较大的状态，比如visited数组
+
+##### 什么情况下用BFS
+
+层序遍历，强调步骤数。迷宫就是是无权图，最短路径等于最少步骤数，每一步就是最优解，比如pipe， 奶牛。
+
+当然需要回溯一个比较大的状态，还是使用DFS
+
+#### 调试技巧
+
+主要代码完成后，记得检查一边有没有明显问题，比如
+
+- 复制粘贴的代码有没有改全
+- 数组下标是否能对应上，x不能放在行的上面，也不能放在列上面
+- 条件判断是否可以等于
+- 全局变量是否都初始化了
+- DFS/BFS是否修改了当前的状态
+- BFS是否是从头节点只读，尾节点只写
+
+**结果不对怎么办？**优先打印当前的状态和下一个状态，仔细核对状态跳转是否正确，不正确，需要继续添加打印，check为什么不对，条件？数据？运算？不要过于依赖VS调试，printf可能效率更高，特别是错误比较深。
+
+**第一个case通过，后面没过怎么办？**将后面case放到第一个，重新运行，如果通过，检查全局变量是否都初始化了。没有通过，检查数据范围是否满足输入要求，回顾题目，然后进一步检查代码。
+
+**超时怎么办？**根据数据的范围加上适当的剪枝优化。考虑采用BFS，参考上面的分析。
+
+
+
+#### 结果输出
+
+不同题目虽然搜索方式一样，但要求的输出也会不一样。下面列举几种。
+
+##### 判断是否存在路径
+
+发现一条路径就一层一层退出DFS/BFS, 比如单词搜索
+
+```c
+bool ans = false;
+void dfs(...)
+    if (...)
+    {
+        // 如果找到，直接返回
+        ans = true;
+        return;
+    }
+
+    if (...)
+    {
+        dfs(....);
+
+        // 如果找到，直接返回
+        if (ans)
+            return;
+    }
+}
+```
+
+##### 统计路径个数
+
+搜索完所有路径，找到一个就累加
+
+```c
+int count = 0;
+void dfs(...)
+    if (...)
+    {
+        count++
+        return;
+    }
+
+    if (...)
+    {
+        dfs(....);
+    }
+}
+```
+
+##### 最短路径长度
+
+```c
+int ans = 99999; // 初始最大值，具体看题目数据
+void dfs(length,...)
+	//剪枝
+	if(ans >= length)
+		return;
+	
+    if (...)
+    {
+        ans = length < ans ? length: ans
+        return;
+    }
+
+    if (...)
+    {
+        dfs(....);
+    }
+}
+
+void bfs(...)
+	// 入队
+	
+    while (...)
+    {
+    	if (...) 
+    	{
+        	ans = length
+        	return;
+    	}
+        出队
+    }
+}
+```
+
+##### 最短路径本身
+
+```c
+int path[1000];
+
+void dfs(step,...)
+    if (...)
+    {
+        for(int i = 0;i<step)
+            printf(..., path[i]);
+        return;
+    }
+
+    if (...)
+    {
+        path[step] = xxx
+        dfs(step+1, ....);
+    }
+}
+
+
+// 参考poj 3984 迷宫
+struct {
+    int x,y
+} record[100][100]; // 迷宫就是二维, 奶牛就是一维
+// 具体里面保存什么？可以是上一个节点的坐标，或者方向，只要能还原出路径即可
+
+// 通过递归实现正序打印
+void print_path(int x, int y)
+{ 
+    if(x == startx && y == starty)
+    {
+        printf(..., x,y);
+        return;
+    }
+	int prev_x = record[y][x].x;
+    int prev_y = record[y][x].y;
+    
+    print_path(x,y);
+    printf(..., x,y);
+}
+
+void bfs(...)
+	// 入队
+	
+    while (...)
+    {
+        int x = queue[head].x
+        int y = queue[head].y
+    	if (...) 
+    	{
+        	print_path(x,y);
+        	return;
+    	}
+        出队
+    }
+}
+```
+
